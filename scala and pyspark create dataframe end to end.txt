@@ -1,0 +1,31 @@
+Scala
+
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.Row
+val data=sc.textFile("")
+val mapsplit = data.map(x => x.split(","))
+val rowrdd = mapsplit.map(x => Row( x(),x(),x(),x(),x(),x()))
+Define structtype
+val df = spark.createDataFrame(rowrdd,structtype)
+
+
+Pyspark
+
+from pyspark.sql.types import *
+from pyspark.sql import Row
+data=sc.textFile("")
+mapsplit = data.map( lambda x: x.split(","))
+rowrdd = mapsplit.map( lambda x : Row( x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8]  ))
+schema = StructType([ \
+    StructField("txnno",StringType(),True), \
+    StructField("txndate",StringType(),True), \
+    StructField("custno",StringType(),True), \
+    StructField("amount", StringType(), True), \
+    StructField("category", StringType(), True), \
+    StructField("product", StringType(), True), \
+    StructField("city", StringType(), True), \
+    StructField("state", StringType(), True), \
+    StructField("spendby", StringType(), True) \
+  ])
+rowdf = spark.createDataFrame(rowrdd,schema)
+rowdf.show()

@@ -1,0 +1,73 @@
+[8:00 AM, 4/10/2022] Sai Hadoop: scala
+
+
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.types._
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+import scala.io.Source._
+
+
+Object SparkObj{
+
+	def main(args:Array[String]):Unit={
+	
+	val conf = new SparkConf().setAppName("sparkrun").setMaster("local[*]")
+	val sc = new SparkContext(conf)
+	sc.setLogLevel("Error")
+	
+	val spark = SparkSession.builder.getOrCreate()
+	import spark.implicits._
+	
+	
+	val urldata = fromURL("https://randomuser.me/api/0.8/?results=10").mkString
+	val rdd = sc.parallelize(List(urldata))
+	val df = spark.read.json(rdd)
+	
+	val explodedf = df.withColumn("results",expr("explode(results)"))
+	val fullexplode = explodedf.select(col("nationality"),col("results.user.cell"),col("results.user.dob"),col("results.user.email"),col("results.user.gender"),col("results.user.location."),col("results.user.md5"),col("results.user.name."),col("results.user.password"),col("results.user.phone"),col("results.user.picture.*"),col("results.user.registered"),col("results.user.salt"),col("results.user.sha1"),col("results.user.sha256"),col("results.user.username"),col("seed"),col("version"))
+	fullexplode.write.format("parquet").mode("overwrite").save("/user/cloudera/parquetdataurl")
+	
+	
+	
+	
+	
+	
+	}
+
+}
+
+
+
+Python
+
+
+from pyspark import SparkContext
+from pyspark import SparkConf
+from pyspark.sql.types import *
+from pyspark.sql import *
+from pyspark.sql.functions import *
+import urllib
+from urllib import request
+
+
+
+
+
+conf = SparkConf().setAppName("sparkrun").setMaster("local[*]")
+sc =  SparkContext(conf=conf)
+sc.setLogLevel("Error")
+
+spark=SparkSession.builder.getOrCreate()
+
+urldata=request.urlopen("https://randomuser.me/api/0.8/?results=10").read().decode("utf8")
+rdd=sc.parallelize([urldata])
+df = spark.read.json(rdd)
+
+explode = df.withColumn("results",expr("explode(results)"))
+
+flatdf=explode.select(col("nationality"),col("results.user.cell"),col("results.user.dob"),col("results.user.email"),col("results.user.gender"),col("results.user.location."),col("results.user.md5"),col("results.user.name."),col("results.user.password"),col("results.user.phone"),col("results.user.picture.*"),col("results.user.registered"),col("results.user.salt"),col("results.user.sha1"),col("results.user.sha256"),col("results.user.username"),col("seed"),col("version"))
+
+flatdf.write.format("parquet").mode("overwrite").save("/user/cloudera/pyurldata")
+[8:03 AM, 4/10/2022] Sai Hadoop: spark-submit --jars /home/cloudera/avjar/spark-avro_2.11-4.0.0.jar urlpyspark.py

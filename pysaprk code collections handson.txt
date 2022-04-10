@@ -1,0 +1,193 @@
+pyspark code/project collections
+======================
+data = sc.textFile("file:///home/cloudera/data/txns")
+gymdata = data.filter( lambda x : 'Gymnastics' in x)
+gymdata.foreach(print)
+=====
+
+
+data = sc.textFile("file:///home/cloudera/data/txns")
+gymdata = data.filter(lambda x : 'Gymnastics' in x)
+gymdata.foreach(print)
+flatdata = gymdata.flatMap( lambda x: x.split(","))
+flatdata.foreach(print)
+mapdata = flatdata.map( lambda x: x+",zeyo")
+mapdata.foreach(print)
+
+=================
+
+
+data = sc.textFile("file:///C:/data/txns")
+gymdata = data.filter(lambda x : 'Gymnastics' in x)
+gymdata.foreach(print)
+flatdata = gymdata.flatMap( lambda x: x.split(","))
+flatdata.foreach(print)
+mapdata = flatdata.map( lambda x: x+",zeyo")
+mapdata.foreach(print)
+
+======
+data = sc.textFile("file:///home/cloudera/data/txns")
+from collections import namedtuple
+schema = namedtuple("schema",["txnno","txndate","custno","amount","category","product","city","state","spendby"])
+mapsplit = data.map( lambda x : x.split(","))
+schemardd = mapsplit.map( lambda x : schema(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8]) )
+df = schemardd.toDF()
+df.show()
+
+======
+
+data = sc.textFile("file:///home/cloudera/data/txns")
+from collections import namedtuple
+schema = namedtuple("schema",["txnno","txndate","custno","amount","category","product","city","state","spendby"])
+mapsplit = data.map( lambda x : x.split(","))
+schemardd = mapsplit.map( lambda x : schema(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8]) )
+df = schemardd.toDF()
+df.show()
+=============
+
+Read this data 
+Define case class with id,name,amount
+Do split on the data
+Impose case class on top of the mapsplit data
+Convert to dataframe
+
+Scala Spark
+
+val data = sc.textFile("file:///home/cloudera/data/smalldata")
+case class schema(id:String,name:String,amount:String)
+val mapsplit = data.map( x => x.split(",") )
+val schemardd = mapsplit.map( x => schema(x(0),x(1),x(2)))
+val df = schemardd.toDF()
+df.show()
+
+df.createOrReplaceTempView("df")
+df1 = spark.sql("select txnno from df where txnno>50000")
+df1.show()
+===============
+
+Task 1 -----
+
+In pyspark
+Read txns data as
+df= spark.read.format("csv").load("")
+write that df as parquet with mode append
+
+
+================
+Scala
+
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.Row
+val data=sc.textFile("")
+val mapsplit = data.map(x => x.split(","))
+val rowrdd = mapsplit.map(x => Row( x(),x(),x(),x(),x(),x()))
+Define structtype
+val df = spark.createDataFrame(rowrdd,structtype)
+
+
+Pyspark
+
+from pyspark.sql.types import *
+from pyspark.sql import Row
+data=sc.textFile("")
+mapsplit = data.map( lambda x: x.split(","))
+rowrdd = mapsplit.map( lambda x : Row( x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8]  ))
+schema = StructType([ \
+    StructField("txnno",StringType(),True), \
+    StructField("txndate",StringType(),True), \
+    StructField("custno",StringType(),True), \
+    StructField("amount", StringType(), True), \
+    StructField("category", StringType(), True), \
+    StructField("product", StringType(), True), \
+    StructField("city", StringType(), True), \
+    StructField("state", StringType(), True), \
+    StructField("spendby", StringType(), True) \
+  ])
+rowdf = spark.createDataFrame(rowrdd,schema)
+rowdf.show()
+
+===============
+
+from pyspark.sql.functions import *
+
+explode = df.withColumn("results",expr("explode(results)"))
+
+flatdf=explode.select(col("nationality"),col("results.user.cell"),col("results.user.dob"),col("results.user.email"),col("results.user.gender"),col("results.user.location."),col("results.user.md5"),col("results.user.name."),col("results.user.password"),col("results.user.phone"),col("results.user.picture.*"),col("results.user.registered"),col("results.user.salt"),col("results.user.sha1"),col("results.user.sha256"),col("results.user.username"),col("seed"),col("version"))
+
+flatdf.printSchema()
+flatdf.show()
+
+================
+
+scala
+
+
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.types._
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+import scala.io.Source._
+
+
+Object SparkObj{
+
+	def main(args:Array[String]):Unit={
+	
+	val conf = new SparkConf().setAppName("sparkrun").setMaster("local[*]")
+	val sc = new SparkContext(conf)
+	sc.setLogLevel("Error")
+	
+	val spark = SparkSession.builder.getOrCreate()
+	import spark.implicits._
+	
+	
+	val urldata = fromURL("https://randomuser.me/api/0.8/?results=10").mkString
+	val rdd = sc.parallelize(List(urldata))
+	val df = spark.read.json(rdd)
+	
+	val explodedf = df.withColumn("results",expr("explode(results)"))
+	val fullexplode = explodedf.select(col("nationality"),col("results.user.cell"),col("results.user.dob"),col("results.user.email"),col("results.user.gender"),col("results.user.location."),col("results.user.md5"),col("results.user.name."),col("results.user.password"),col("results.user.phone"),col("results.user.picture.*"),col("results.user.registered"),col("results.user.salt"),col("results.user.sha1"),col("results.user.sha256"),col("results.user.username"),col("seed"),col("version"))
+	fullexplode.write.format("parquet").mode("overwrite").save("/user/cloudera/parquetdataurl")
+	
+	
+	
+	
+	
+	
+	}
+
+}
+
+
+
+Python
+
+
+from pyspark import SparkContext
+from pyspark import SparkConf
+from pyspark.sql.types import *
+from pyspark.sql import *
+from pyspark.sql.functions import *
+import urllib
+from urllib import request
+
+
+
+
+
+conf = SparkConf().setAppName("sparkrun").setMaster("local[*]")
+sc =  SparkContext(conf=conf)
+sc.setLogLevel("Error")
+
+spark=SparkSession.builder.getOrCreate()
+
+urldata=request.urlopen("https://randomuser.me/api/0.8/?results=10").read().decode("utf8")
+rdd=sc.parallelize([urldata])
+df = spark.read.json(rdd)
+
+explode = df.withColumn("results",expr("explode(results)"))
+
+flatdf=explode.select(col("nationality"),col("results.user.cell"),col("results.user.dob"),col("results.user.email"),col("results.user.gender"),col("results.user.location."),col("results.user.md5"),col("results.user.name."),col("results.user.password"),col("results.user.phone"),col("results.user.picture.*"),col("results.user.registered"),col("results.user.salt"),col("results.user.sha1"),col("results.user.sha256"),col("results.user.username"),col("seed"),col("version"))
+
+flatdf.write.format("parquet").mode("overwrite").save("/user/cloudera/pyurldata")
